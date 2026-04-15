@@ -13,32 +13,35 @@ Description: Management of gridded time-series (arrays with a time dimension),
     R time-series methods. 
 License: GPL-3
 Depends: R (>= 3.5.0)
-Imports: akima,
-         colorful,
-         fields,
-         graphics,
-         grDevices,
-         lubridate,
-         Matrix,
-         maps,
-         methods,
-         mgcv,
-         ncdf4,
-         nctools,
-         reshape2,
-         sf,
-         stats,
-         stlplus,
-         utils
+Imports: 
+    akima,
+    colorful,
+    fields,
+    graphics,
+    grDevices,
+    lubridate,
+    Matrix,
+    maps,
+    methods,
+    mgcv,
+    ncdf4,
+    nctools,
+    reshape2,
+    sf,
+    stats,
+    stlplus,
+    utils,
+    cli
 Encoding: UTF-8
 LazyData: TRUE
 RoxygenNote: 7.3.3
 Suggests: 
     knitr,
     mapdata,
+    quarto,
     rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-VignetteBuilder: knitr
+VignetteBuilder: knitr, quarto
 URL: https://roliveros-ramos.github.io/gts/
 BugReports: https://github.com/roliveros-ramos/gts/issues

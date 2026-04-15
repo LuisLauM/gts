@@ -1,22 +1,81 @@
-#' @importFrom ncdf4 nc_open nc_close ncvar_get ncatt_get
-#' @importFrom nctools ncvar_dim write_ncdf
-#' @export write_ncdf
-#' @importFrom fields poly.image image.plot interp.surface.grid tim.colors
-#' imageplot.info imageplot.setup
-#' @importFrom lubridate yday<- year month ymd leap_year parse_date_time period
-#' ceiling_date floor_date ymd_hms days_in_month parse_date_time
-#' days_in_month seconds
+#' @importFrom ncdf4 nc_open
+#' @importFrom ncdf4 nc_close
+#' @importFrom ncdf4 ncvar_get
+#' @importFrom ncdf4 ncatt_get
+#' @importFrom nctools ncvar_dim
+#' @importFrom nctools write_ncdf
+#' @importFrom fields poly.image
+#' @importFrom fields image.plot
+#' @importFrom fields interp.surface.grid
+#' @importFrom fields tim.colors
+#' @importFrom fields imageplot.info
+#' @importFrom fields imageplot.setup
+#' @importFrom lubridate yday<-
+#' @importFrom lubridate year
+#' @importFrom lubridate month
+#' @importFrom lubridate ymd
+#' @importFrom lubridate leap_year
+#' @importFrom lubridate parse_date_time
+#' @importFrom lubridate period
+#' @importFrom lubridate ceiling_date
+#' @importFrom lubridate floor_date
+#' @importFrom lubridate ymd_hms
+#' @importFrom lubridate days_in_month
+#' @importFrom lubridate parse_date_time
+#' @importFrom lubridate days_in_month
+#' @importFrom lubridate seconds
+#' @importFrom lubridate is.Date
+#' @importFrom lubridate is.POSIXt
 #' @importFrom mgcv gam
-#' @importFrom akima interp interpp bilinear bicubic
-#' @importFrom sf st_sfc st_transform st_point st_as_sf st_crs 'st_crs<-' st_join
+#' @importFrom akima interp
+#' @importFrom akima interpp
+#' @importFrom akima bilinear
+#' @importFrom akima bicubic
+#' @importFrom sf st_sfc
+#' @importFrom sf st_transform
+#' @importFrom sf st_point
+#' @importFrom sf st_as_sf
+#' @importFrom sf st_crs
+#' @importFrom sf 'st_crs<-'
+#' @importFrom sf st_join
 #' @importFrom colorful divergencePalette
-#' @importFrom stats gaussian integrate quantile sd cycle frequency deltat time
-#' start end window complete.cases median predict setNames splinefun ts
+#' @importFrom stats gaussian
+#' @importFrom stats integrate
+#' @importFrom stats quantile
+#' @importFrom stats sd
+#' @importFrom stats cycle
+#' @importFrom stats frequency
+#' @importFrom stats deltat
+#' @importFrom stats time
+#' @importFrom stats start
+#' @importFrom stats end
+#' @importFrom stats window
+#' @importFrom stats complete.cases
+#' @importFrom stats median
+#' @importFrom stats predict
+#' @importFrom stats setNames
+#' @importFrom stats splinefun
+#' @importFrom stats ts
 #' @importFrom maps map
 #' @importFrom Matrix sparseMatrix
 #' @importFrom methods Math2
 #' @importFrom grDevices rainbow
-#' @importFrom graphics axis box image mtext par title
-#' @importFrom utils head setTxtProgressBar str tail txtProgressBar
+#' @importFrom graphics axis
+#' @importFrom graphics box
+#' @importFrom graphics image
+#' @importFrom graphics mtext
+#' @importFrom graphics par
+#' @importFrom graphics title
+#' @importFrom utils head
+#' @importFrom utils setTxtProgressBar
+#' @importFrom utils str
+#' @importFrom utils tail
+#' @importFrom utils txtProgressBar
+#' @importFrom utils download.file
 #' @importFrom stlplus stlplus
+#' @importFrom cli cli_text
+#' @importFrom cli cli_ul
+#' @importFrom cli cli_abort
+#' @importFrom jsonlite fromJSON
+#' @export write_ncdf
 NULL

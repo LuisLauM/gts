@@ -9,3 +9,5 @@
 README.*
 TODO.*
 cran-comments.*
+^vignettes/\.quarto$
+^vignettes/*_files$

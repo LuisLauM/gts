@@ -2,35 +2,27 @@
 % Please edit documentation in R/subset.R
 \name{gridded-subset}
 \alias{gridded-subset}
+\alias{subset}
 \alias{subset.gts}
 \alias{subset.grid}
 \alias{subset.static}
 \title{Subset gridded objects}
 \usage{
-\method{subset}{gts}(
-  x,
-  longitude = NULL,
-  latitude = NULL,
-  grid = NULL,
-  frequency = NULL,
-  expand = 0,
-  ...
-)
+subset(x, subset, ...)
 
-\method{subset}{grid}(
-  x,
-  longitude = NULL,
-  latitude = NULL,
-  index.return = FALSE,
-  grid = NULL,
-  expand = 0,
-  ...
-)
+\method{subset}{gts}(x, subset, ...)
 
-\method{subset}{static}(x, longitude = NULL, latitude = NULL, grid = NULL, expand = 0, ...)
+\method{subset}{grid}(x, subset, index.return = FALSE, ...)
+
+\method{subset}{static}(x, subset, ...)
 }
 \arguments{
 \item{x}{A `gts`, `grid`, or `static` object.}
+
+\item{...}{Additional arguments passed to the method.}
+
+\item{index.return}{Logical; if `TRUE`, `subset.grid()` includes the logical
+longitude and latitude indices used for subsetting in the returned object.}
 
 \item{longitude, latitude}{Numeric vectors defining the horizontal range to
 retain. Only the range of the supplied values is used.}
@@ -46,11 +38,6 @@ extent.}
 \item{expand}{Numeric expansion applied to the target grid extent, typically
 in coordinate units. This may be a scalar, used for both longitude and
 latitude, or a vector of length two.}
-
-\item{...}{Additional arguments passed to the method.}
-
-\item{index.return}{Logical; if `TRUE`, `subset.grid()` includes the logical
-longitude and latitude indices used for subsetting in the returned object.}
 }
 \value{
 Depending on the method:
@@ -63,16 +50,17 @@ Depending on the method:
 }
 }
 \description{
-These are methods for the base [base::subset()] generic applied to gridded
+These are methods for the base \link[base]{subset} generic applied to gridded
 objects.
 }
 \details{
 The page covers three related classes:
 \itemize{
-  \item `gts` objects, which store gridded time-series data;
-  \item `static` objects, which store gridded spatial fields without a time
-  dimension;
-  \item `grid` objects, which store spatial geometry and associated metadata.
+  \item \code{gts} objects, which store gridded time-series data;
+  \item \code{static} objects, which store gridded spatial fields without a 
+  time dimension;
+  \item \code{grid} objects, which store spatial geometry and associated 
+  metadata.
 }
 
 Spatial subsetting is performed by longitude and latitude ranges, or by using
@@ -108,7 +96,7 @@ supplied.
 }
 \section{Functions}{
 \itemize{
-\item \code{subset(gts)}: Subset a `gts` object in space and, optionally, by
+\item \code{subset(gts)}: Subset a `gts` object in space and, optionally, by 
 cycle position.
 
 \item \code{subset(grid)}: Subset a `grid` object by spatial extent.

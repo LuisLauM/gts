@@ -208,8 +208,8 @@ melt.gts = function(data, ..., na.rm=FALSE, value.name=NULL, short=FALSE) {
     other = as.data.frame(other)
     out = cbind(out, other)
   }
-  return(out)
-
+  
+  if(isTRUE(na.rm)) na.omit(out) else out
 }
 
 #' @describeIn gridded-reshape Convert a `static` object to long format.
@@ -234,8 +234,7 @@ melt.static = function(data, ..., na.rm=FALSE, value.name=NULL) {
 
   }
 
-  return(out)
-
+  if(isTRUE(na.rm)) na.omit(out) else out
 }
 
 #' Drop redundant dimensions

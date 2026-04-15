@@ -1,14 +1,15 @@
 #' Subset gridded objects
 #'
-#' These are methods for the base [base::subset()] generic applied to gridded
+#' These are methods for the base \link[base]{subset} generic applied to gridded
 #' objects.
 #'
 #' The page covers three related classes:
 #' \itemize{
-#'   \item `gts` objects, which store gridded time-series data;
-#'   \item `static` objects, which store gridded spatial fields without a time
-#'   dimension;
-#'   \item `grid` objects, which store spatial geometry and associated metadata.
+#'   \item \code{gts} objects, which store gridded time-series data;
+#'   \item \code{static} objects, which store gridded spatial fields without a 
+#'   time dimension;
+#'   \item \code{grid} objects, which store spatial geometry and associated 
+#'   metadata.
 #' }
 #'
 #' Spatial subsetting is performed by longitude and latitude ranges, or by using
@@ -67,6 +68,8 @@
 #'   longitude and latitude indices.}
 #'   \item{`subset.static()`}{A subsetted `static` object.}
 #' }
+#' 
+#' @export
 #'
 #' @seealso [base::subset()], [window.gts()], [grid-class], [gts-class],
 #'   [static-class]
@@ -80,13 +83,54 @@
 #' s2 <- subset(bathy, grid = grd2)
 #' }
 #' @name gridded-subset
-NULL
+subset = function(x, subset, ...) {
+  UseMethod("subset")
+}
 
-
-#' @describeIn gridded-subset Subset a `gts` object in space and, optionally, by
-#'   cycle position.
 #' @export
-subset.gts = function(x, longitude=NULL, latitude=NULL, grid=NULL, frequency=NULL, expand=0, ...) {
+subset.default <- function(x, subset, ...) {
+  stop(paste("No hay método subset para la clase:", class(x)))
+}
+
+get_grid_from <- function(x){
+  if(inherits(x = x, what = "gts") || inherits(x = x, what = "static")){
+    x$grid
+  }else if(inherits(x = x, what = "grid")){
+    x
+  }else if(is.list(x)){
+    make_grid(
+      lon = x$longitude,
+      lat = x$latitude, 
+      dx = 1
+    )
+  }else{
+    stop("`x` must be an object of class 'gts', 'static', 'grid' or 'list'.")
+  }
+}
+
+#' @describeIn gridded-subset Subset a `gts` object in space and, optionally, by 
+#' cycle position.
+#' @method subset gts
+#' @export
+subset.gts = function(x, subset, ...) {
+  
+  subset <- modifyList(
+    x = list(
+      longitude = NULL,
+      latitude  = NULL,
+      grid      = NULL,
+      frequency = NULL,
+      expand    = NULL
+    ), 
+    val = get_grid_from(x = subset),
+    keep.null = TRUE
+  )
+  
+  longitude <- subset$longitude
+  latitude <- subset$latitude
+  grid <- subset$grid
+  frequency <- subset$frequency
+  expand <- subset$expand
 
   if(!is.null(frequency)) {
     frequency = as.integer(frequency)
@@ -97,7 +141,17 @@ subset.gts = function(x, longitude=NULL, latitude=NULL, grid=NULL, frequency=NUL
 
   if(!is.null(longitude) | !is.null(latitude) | !is.null(grid)) {
 
-    x$grid = subset(x$grid, longitude=longitude, latitude=latitude, index.return=TRUE, grid=grid, expand=expand, ...)
+    x$grid = subset(
+      x = x$grid, 
+      subset = list(
+        longitude = longitude, 
+        latitude = latitude, 
+        index.return = TRUE, 
+        grid = grid, 
+        expand = expand, 
+        ...
+      )
+    )
     x$longitude = x$grid$longitude
     x$latitude = x$grid$latitude
 
@@ -140,8 +194,27 @@ subset.gts = function(x, longitude=NULL, latitude=NULL, grid=NULL, frequency=NUL
 }
 
 #' @describeIn gridded-subset Subset a `grid` object by spatial extent.
+#' @method subset grid
 #' @export
-subset.grid = function(x, longitude=NULL, latitude=NULL, index.return=FALSE, grid=NULL, expand=0, ...) {
+subset.grid = function(x, subset, index.return = FALSE, ...) {
+  
+  subset <- modifyList(
+    x = list(
+      longitude = NULL,
+      latitude  = NULL,
+      grid      = NULL,
+      frequency = NULL,
+      expand    = NULL
+    ), 
+    val = get_grid_from(x = subset),
+    keep.null = TRUE
+  )
+  
+  longitude <- subset$longitude
+  latitude <- subset$latitude
+  grid <- subset$grid
+  frequency <- subset$frequency
+  expand <- subset$expand
 
   if(is.null(longitude)&is.null(latitude)&is.null(grid)) return(x)
 
@@ -189,10 +262,39 @@ subset.grid = function(x, longitude=NULL, latitude=NULL, index.return=FALSE, gri
 
 
 #' @describeIn gridded-subset Subset a `static` object in space.
+#' @method subset static
 #' @export
-subset.static = function(x, longitude=NULL, latitude=NULL, grid=NULL, expand=0, ...) {
+subset.static = function(x, subset, ...) {
+  
+  subset <- modifyList(
+    x = list(
+      longitude = NULL,
+      latitude  = NULL,
+      grid      = NULL,
+      frequency = NULL,
+      expand    = NULL
+    ), 
+    val = get_grid_from(x = subset),
+    keep.null = TRUE
+  )
+  
+  longitude <- subset$longitude
+  latitude <- subset$latitude
+  grid <- subset$grid
+  frequency <- subset$frequency
+  expand <- subset$expand
 
-  x$grid = subset(x$grid, longitude=longitude, latitude=latitude, index.return=TRUE, grid=grid, expand=expand, ...)
+  x$grid = subset(
+    x = x$grid, 
+    subset = list(
+      longitude = longitude, 
+      latitude = latitude, 
+      grid = grid, 
+      expand = expand
+    ), 
+    index.return = TRUE,
+    ...
+  )
   x$longitude = x$grid$longitude
   x$latitude = x$grid$latitude
 

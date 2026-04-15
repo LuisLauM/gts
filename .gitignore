@@ -30,3 +30,4 @@ sandbox/*
 
 inst/doc
 docs
+**/.quarto/

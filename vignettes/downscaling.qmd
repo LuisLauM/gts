@@ -1,0 +1,262 @@
+---
+title: "Statistical Downscaling"
+vignette: >
+  %\VignetteIndexEntry{Downscaling example}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: '#>'
+---
+
+```{r}
+#| label: setup
+
+library(gts)
+
+exampleRepo <- "LuisLauM/gts-raw-data"
+```
+
+## Overview
+
+This vignette demonstrates how to perform statistical downscaling of gridded climate data. The workflow combines simulated large-scale model outputs with observed data and static covariates to train a **Generalized Additive Model (GAM)** for spatial refinement.
+
+We illustrate how to:
+
+* Load and preprocess gridded time series data
+* Align datasets spatially and temporally
+* Incorporate static covariates
+* Train a GAM-based downscaling model
+* Generate predictions
+
+
+
+## Downloading Example Data
+
+We use `download_gts_data` function to download example data for the region around the Gulf of Lyon (France) from the Github repo <`r exampleRepo`>.
+
+```{r}
+tempDir <- tempdir()
+
+files <- download_gts_data(
+  files = c(
+    bathymetry = "bathymetry.nc", 
+    shelfbreak = "shelfbreak.nc", 
+    sst_obs    = "sst-Copernicus-gol.nc",
+    sst_sim    = "sst-IPSL-CM6A-med.nc"
+  ),
+  destdir = tempDir,
+  overwrite = FALSE,
+  quiet = TRUE
+)
+```
+
+
+### Simulated Data
+
+We load simulated climate data (e.g., sea surface temperature) and convert it from Kelvin to Celsius:
+
+```{r}
+sim <- read_gts(
+  filename = files$sst_sim, 
+  varid = "ts"
+) - 273.15
+```
+
+Once the file has been read, a `gts` object supports arithmetic operations such as addition, subtraction, multiplication, and division. In the example, this feature was used to convert values from °K to °C.
+
+When working with monthly maps, some data sources define the average value for each month as the value on the 16th. To standardize the temporal structure, we set all days to the first of the month:
+
+```{r}
+lubridate::day(sim$time) <- 1
+```
+
+
+### Observed Data
+
+Observed data is loaded in the same format:
+
+```{r}
+obs <- read_gts(
+  filename = files$sst_obs, 
+  varid = "sst"
+)
+```
+
+As you can see, `read_gts` detected internally that the values for one of the dimensions were in descending order, so the function itself made the necessary correction and sent a warning.
+
+
+## 3. Defining Temporal and Spatial Domains
+
+The area for the training data will be the Gulf of Lyon between 2015 and 2025:
+
+```{r}
+# Training period
+train_start <- 2015
+train_end   <- 2025
+
+# Prediction period
+pred_start  <- 2026
+pred_end    <- 2030
+
+# Gulf of Lyon domain
+zone <- list(
+  longitude = c(-7, 37),
+  latitude = c(30, 46)
+)
+```
+
+
+## 4. Static Covariates
+
+Static variables help explain spatial variability in the target variable.
+
+### Bathymetry
+
+```{r}
+bathy <- read_static(
+  filename = files$bathymetry, 
+  varid = "z"
+)
+print(bathy)
+```
+
+### Shlef break
+
+```{r}
+shelf <- read_static(
+  filename = files$shelfbreak, 
+  varid = "shelf"
+)
+print(shelf)
+```
+```{r}
+plot(x = bathy)
+plot(x = shelf)
+```
+
+
+
+## Temporal and Spatial Subsetting
+
+We extract the training period from both observed and simulated datasets:
+
+```{r}
+obs_train <- window(obs, start = c(train_start, 1), end = c(train_end, 12))
+sim_train <- window(sim, start = c(train_start, 1), end = c(train_end, 12))
+```
+
+We also created a subset of the static variables to include only the data within the analysis area.
+
+```{r}
+bathy <- subset(x = bathy, subset = zone)
+shelf <- subset(x = shelf, subset = zone)
+```
+
+As you can see, to create a spatial subset, you can either specify the domain ranges directly or select an object from which to extract these ranges (`gts`, `static`, or `grid`). 
+
+
+## Spatial Regridding
+
+To ensure consistency, all datasets are interpolated onto the observed grid:
+
+```{r}
+sim_train   <- regrid(object = sim_train, grid = obs_train, method = "bilinear")
+shelf_train <- regrid(object = shelf, grid = obs_train, method = "bilinear")
+bathy_train <- regrid(object = bathy, grid = obs_train, method = "fill")
+```
+
+## Data Preparation
+
+We convert the gridded objects into a tabular format suitable for modeling:
+
+```{r}
+train_data <- melt(
+  data  = obs_train, 
+  sim   = drop(sim_train), 
+  shelf = shelf_train,
+  bathy = bathy_train,
+  value.name = "obs",
+  short = TRUE
+)
+```
+
+We retain only complete cases:
+
+```{r}
+train_data <- train_data[complete.cases(train_data), ]
+```
+
+
+## Model Fitting
+
+We fit a **Generalized Additive Model (GAM)** using the `bam` function from the `mgcv` package. The model incorporates:
+
+* A tensor interaction between simulation and spatial coordinates
+* Smooth spatial effects
+* Static covariates (bathymetry and shelf depth)
+
+```{r}
+library(mgcv)
+
+index <- sample(
+  x = seq(nrow(train_data)),
+  size = nrow(train_data)*.8
+)
+
+model_gam <- bam(
+  formula = obs ~ 
+    te(by = sim, lon, lat, k = 20) + 
+    ti(lon, k = 20) + 
+    ti(lat, k = 25) + 
+    ti(lon, lat, k = 15) + 
+    s(bathy, bs = "cr", k = 15) + 
+    s(shelf, bs = "cr", k = 15), 
+  data = train_data[index,],
+  family = gaussian(),
+  method = "REML",
+  nthreads = 8
+)
+```
+
+We can inspect the model summary:
+
+```{r}
+summary(model_gam)
+```
+
+
+## Prediction
+
+Finally, we generate fitted values over the training dataset:
+
+```{r}
+train_data$predicted <- predict(
+  object = model_gam, 
+  newdata = train_data, 
+  type = "response"
+)
+
+plot(
+  x = train_data$obs[!index],
+  y = train_data$predicted[!index],
+  asp = 1,
+  cex = .1,
+  pch = 16,
+  xlab = "SST observed (°K)",
+  ylab = "SST predicted (°K)"
+)
+
+abline(a = 0, b = 1, col = "firebrick", lty = "dashed")
+```
+
+## Save predicted data
+
+```{r}
+#| eval: false
+
+write_ncdf(downscaled, "sst_downscaled_1990-2100.nc")
+write_ncdf(uncertainty, "sst_downscaling_uncertainty.nc")
+```
+
