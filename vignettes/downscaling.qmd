@@ -1,14 +1,27 @@
 ---
 title: "Statistical Downscaling"
+format: 
+  html:
+    toc: false
+    html-math-method: mathjax
+    embed-resources: true
 vignette: >
   %\VignetteIndexEntry{Downscaling example}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
-knitr:
-  opts_chunk:
-    collapse: true
-    comment: '#>'
 ---
+
+```{r}
+#| include: false
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  dpi = 500,
+  warning = FALSE,
+  message = FALSE
+)
+```
 
 ```{r}
 #| label: setup
@@ -61,12 +74,9 @@ We load simulated climate data (e.g., sea surface temperature) and convert it fr
 sim <- read_gts(
   filename = files$sst_sim, 
   varid = "ts"
-) - 273.15
+)
 ```
 
-Once the file has been read, a `gts` object supports arithmetic operations such as addition, subtraction, multiplication, and division. In the example, this feature was used to convert values from °K to °C.
-
-When working with monthly maps, some data sources define the average value for each month as the value on the 16th. To standardize the temporal structure, we set all days to the first of the month:
 
 ```{r}
 lubridate::day(sim$time) <- 1
@@ -81,10 +91,14 @@ Observed data is loaded in the same format:
 obs <- read_gts(
   filename = files$sst_obs, 
   varid = "sst"
-)
+) - 273.15
 ```
 
-As you can see, `read_gts` detected internally that the values for one of the dimensions were in descending order, so the function itself made the necessary correction and sent a warning.
+Once the file has been read, a `gts` object supports arithmetic operations such as addition, subtraction, multiplication, and division. In the example, this feature was used to convert values from °K to °C.
+
+When working with monthly maps, some data sources define the average value for each month as the value on the 16th. To standardize the temporal structure, we set all days to the first of the month:
+
+Likewise, `read_gts` detected internally that the values for one of the dimensions were in descending order, so the function itself made the necessary correction and sent a warning.
 
 
 ## 3. Defining Temporal and Spatial Domains
@@ -215,8 +229,7 @@ model_gam <- bam(
     s(shelf, bs = "cr", k = 15), 
   data = train_data[index,],
   family = gaussian(),
-  method = "REML",
-  nthreads = 8
+  method = "REML"
 )
 ```
 
@@ -232,6 +245,9 @@ summary(model_gam)
 Finally, we generate fitted values over the training dataset:
 
 ```{r}
+#| fig-width: 8
+#| fig-height: 8
+
 train_data$predicted <- predict(
   object = model_gam, 
   newdata = train_data, 
@@ -239,13 +255,13 @@ train_data$predicted <- predict(
 )
 
 plot(
-  x = train_data$obs[!index],
-  y = train_data$predicted[!index],
+  x = train_data$obs[-index],
+  y = train_data$predicted[-index],
   asp = 1,
   cex = .1,
   pch = 16,
-  xlab = "SST observed (°K)",
-  ylab = "SST predicted (°K)"
+  xlab = "SST observed (°C)",
+  ylab = "SST predicted (°C)"
 )
 
 abline(a = 0, b = 1, col = "firebrick", lty = "dashed")
