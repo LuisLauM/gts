@@ -17,7 +17,7 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  dpi = 500,
+  # dpi = 500,
   warning = FALSE,
   message = FALSE
 )
@@ -101,7 +101,7 @@ When working with monthly maps, some data sources define the average value for e
 Likewise, `read_gts` detected internally that the values for one of the dimensions were in descending order, so the function itself made the necessary correction and sent a warning.
 
 
-## 3. Defining Temporal and Spatial Domains
+## Defining Temporal and Spatial Domains
 
 The area for the training data will be the Gulf of Lyon between 2015 and 2025:
 
@@ -116,13 +116,13 @@ pred_end    <- 2030
 
 # Gulf of Lyon domain
 zone <- list(
-  longitude = c(-7, 37),
-  latitude = c(30, 46)
+  longitude = c(-3, 9),
+  latitude = c(41, 45)
 )
 ```
 
 
-## 4. Static Covariates
+## Static Covariates
 
 Static variables help explain spatial variability in the target variable.
 
@@ -165,7 +165,9 @@ We also created a subset of the static variables to include only the data within
 
 ```{r}
 bathy <- subset(x = bathy, subset = zone)
+plot(bathy)
 shelf <- subset(x = shelf, subset = zone)
+plot(shelf)
 ```
 
 As you can see, to create a spatial subset, you can either specify the domain ranges directly or select an object from which to extract these ranges (`gts`, `static`, or `grid`). 
