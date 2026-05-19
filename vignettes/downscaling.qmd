@@ -6,7 +6,7 @@ format:
     html-math-method: mathjax
     embed-resources: true
 vignette: >
-  %\VignetteIndexEntry{Downscaling example}
+  %\VignetteIndexEntry{Statistical Downscaling}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
@@ -56,7 +56,7 @@ files <- download_gts_data(
   files = c(
     bathymetry = "bathymetry.nc", 
     shelfbreak = "shelfbreak.nc", 
-    sst_obs    = "sst-Copernicus-gol.nc",
+    sst_obs    = "sst-Copernicus-med.nc",
     sst_sim    = "sst-IPSL-CM6A-med.nc"
   ),
   destdir = tempDir,
@@ -91,7 +91,7 @@ Observed data is loaded in the same format:
 obs <- read_gts(
   filename = files$sst_obs, 
   varid = "sst"
-) - 273.15
+)
 ```
 
 Once the file has been read, a `gts` object supports arithmetic operations such as addition, subtraction, multiplication, and division. In the example, this feature was used to convert values from °K to °C.
@@ -160,6 +160,12 @@ We extract the training period from both observed and simulated datasets:
 obs_train <- window(obs, start = c(train_start, 1), end = c(train_end, 12))
 sim_train <- window(sim, start = c(train_start, 1), end = c(train_end, 12))
 ```
+
+```{r}
+obs_train <- subset(x = obs_train, subset = zone)
+sim_train <- subset(x = sim_train, subset = zone)
+```
+
 
 We also created a subset of the static variables to include only the data within the analysis area.
 
